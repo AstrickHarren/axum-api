@@ -1,6 +1,7 @@
-use std::error::Error;
-
-use aide::axum::{ApiRouter, routing::get_with};
+use {
+    aide::axum::{ApiRouter, routing::get_with},
+    std::error::Error,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

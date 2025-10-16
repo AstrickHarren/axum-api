@@ -1,31 +1,31 @@
 use {
-  aide::openapi::OpenApi,
-  axum::{Extension, Json, Router, handler::Handler, response::Html, routing::get},
-  std::sync::Arc,
+    aide::openapi::OpenApi,
+    axum::{Extension, Json, Router, handler::Handler, response::Html, routing::get},
+    std::sync::Arc,
 };
 pub struct Scalar {
-  path: String,
+    path: String,
 }
 
 impl Scalar {
-  pub fn new() -> Self {
-    Self {
-      path: "/private/api.json".to_string(),
+    pub fn new() -> Self {
+        Self {
+            path: "/private/api.json".to_string(),
+        }
     }
-  }
 
-  pub fn router(self) -> Router {
-    Router::new()
-      .route("/docs", get(self.axum_handler()))
-      .route(
-        &self.path,
-        get(|Extension(api): Extension<Arc<OpenApi>>| async { Json(api) }),
-      )
-  }
+    pub fn router(self) -> Router {
+        Router::new()
+            .route("/docs", get(self.axum_handler()))
+            .route(
+                &self.path,
+                get(|Extension(api): Extension<Arc<OpenApi>>| async { Json(api) }),
+            )
+    }
 
-  fn axum_handler(&self) -> impl Handler<((),), ()> {
-    let html = format!(
-      r#"
+    fn axum_handler(&self) -> impl Handler<((),), ()> {
+        let html = format!(
+            r#"
             <!doctype html>
             <html>
               <head>
@@ -56,9 +56,9 @@ impl Scalar {
               </body>
             </html>
             "#,
-      self.path
-    );
+            self.path
+        );
 
-    || async { Html(html) }
-  }
+        || async { Html(html) }
+    }
 }

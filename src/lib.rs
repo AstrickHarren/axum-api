@@ -3,13 +3,16 @@ pub mod api_error;
 mod auth;
 pub mod diesel_otel;
 pub mod extractors;
+pub mod prelude;
 mod scalar;
 
-pub use aide::axum::ApiRouter;
 pub use extractors::jwt_open_api;
 use {
     crate::{diesel_otel::OtelInstrument, extractors::Jwt, scalar::Scalar},
-    aide::openapi::{OpenApi, SecurityScheme},
+    aide::{
+        axum::ApiRouter,
+        openapi::{OpenApi, SecurityScheme},
+    },
     axum::Extension,
     axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer},
     derive_builder::Builder,
