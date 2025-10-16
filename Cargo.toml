@@ -24,3 +24,5 @@ tower-http = { version = "0.6.6", features = ["cors"] }
 jsonwebtoken = "9.3.1"
 chrono = { version = "0.4.42", features = ["serde"] }
 diesel_migrations = { version = "2.3.0", features = ["postgres"] }
+axum_typed_multipart = "0.16.4"
+indexmap = "2.11.4"

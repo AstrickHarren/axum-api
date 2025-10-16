@@ -1,4 +1,5 @@
 mod jwt;
+mod multipart;
 mod path;
 mod valid_json;
 mod valid_query;
@@ -9,6 +10,7 @@ use {
 };
 pub use {
     jwt::{Claims, Jwt, jwt_open_api},
+    multipart::Multipart,
     path::Path,
     valid_json::Json,
     valid_query::Query,

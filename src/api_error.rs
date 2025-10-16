@@ -6,6 +6,7 @@ use {
         http::StatusCode,
         response::IntoResponse,
     },
+    axum_typed_multipart::TypedMultipartError,
     schemars::JsonSchema,
     serde::Serialize,
     serde_json::json,
@@ -107,6 +108,17 @@ impl IntoApiError for PathRejection {
             status: self.status(),
             title: "Axum Path Rejection".to_string(),
             detail: Some(self.body_text()),
+            extensions: None,
+        }
+    }
+}
+
+impl IntoApiError for TypedMultipartError {
+    fn into_error_response(self) -> ApiError {
+        ApiError {
+            status: self.get_status(),
+            title: "Multipart Parse Rejection".to_string(),
+            detail: Some(self.to_string()),
             extensions: None,
         }
     }
