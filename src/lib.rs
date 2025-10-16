@@ -16,7 +16,8 @@ use {
     axum::Extension,
     axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer},
     derive_builder::Builder,
-    diesel_async::{AsyncConnection, AsyncPgConnection},
+    diesel_async::{AsyncConnection, AsyncMigrationHarness, AsyncPgConnection},
+    diesel_migrations::{EmbeddedMigrations, MigrationHarness},
     std::{net::SocketAddr, sync::Arc},
     tokio::net::{TcpListener, ToSocketAddrs},
 };
@@ -32,6 +33,7 @@ pub struct Server<A: ToSocketAddrs> {
     /// Jwt token secret
     #[builder(setter(into))]
     jwt_secret: String,
+    migratons: Option<EmbeddedMigrations>,
 }
 
 impl<A: ToSocketAddrs> Server<A> {
@@ -39,7 +41,14 @@ impl<A: ToSocketAddrs> Server<A> {
         let _guard = init_tracing_opentelemetry::TracingConfig::development().init_subscriber()?;
 
         let database = {
-            let mut database = AsyncPgConnection::establish(&self.pg_url).await?;
+            let database = AsyncPgConnection::establish(&self.pg_url).await?;
+            let mut database = AsyncMigrationHarness::new(database);
+            if let Some(migrations) = self.migratons {
+                database
+                    .run_pending_migrations(migrations)
+                    .expect("Migration failed");
+            }
+            let mut database = database.into_inner();
             database.set_instrumentation(OtelInstrument);
             database
         };
