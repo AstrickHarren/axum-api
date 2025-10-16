@@ -2,7 +2,10 @@ use {
     aide::OperationOutput,
     axum::{
         Json,
-        extract::rejection::{JsonRejection, PathRejection, QueryRejection},
+        extract::{
+            multipart::MultipartError,
+            rejection::{JsonRejection, PathRejection, QueryRejection},
+        },
         http::StatusCode,
         response::IntoResponse,
     },
@@ -117,6 +120,17 @@ impl IntoApiError for TypedMultipartError {
     fn into_error_response(self) -> ApiError {
         ApiError {
             status: self.get_status(),
+            title: "Multipart Parse Rejection".to_string(),
+            detail: Some(self.to_string()),
+            extensions: None,
+        }
+    }
+}
+
+impl IntoApiError for MultipartError {
+    fn into_error_response(self) -> ApiError {
+        ApiError {
+            status: self.status(),
             title: "Multipart Parse Rejection".to_string(),
             detail: Some(self.to_string()),
             extensions: None,

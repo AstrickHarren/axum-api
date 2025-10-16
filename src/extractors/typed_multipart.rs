@@ -6,32 +6,32 @@ use {
         operation::set_body,
     },
     axum::extract::FromRequest,
-    derive_more::{Deref, DerefMut},
+    axum_typed_multipart::TryFromMultipartWithState,
+    derive_more::{AsMut, AsRef, Deref, DerefMut, From},
     indexmap::IndexMap,
     schemars::JsonSchema,
-    std::marker::PhantomData,
 };
 
-#[derive(Debug, Deref, DerefMut)]
-pub struct Multipart<T = ()>(
-    #[deref]
-    #[deref_mut]
-    pub axum::extract::Multipart,
-    pub PhantomData<T>,
-);
+#[derive(Debug, Clone, Copy, Default, PartialEq, Deref, DerefMut, AsRef, AsMut, From)]
+pub struct TypedMultipart<T>(pub T);
 
-impl<S: Send + Sync, T> FromRequest<S> for Multipart<T> {
+impl<S, T> FromRequest<S> for TypedMultipart<T>
+where
+    S: Send + Sync,
+    T: TryFromMultipartWithState<S>,
+{
     type Rejection = ApiError;
 
     async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
-        let multipart = axum::extract::Multipart::from_request(req, state)
-            .await
-            .unwrap();
-        Ok(Self(multipart, PhantomData))
+        Ok(Self(
+            axum_typed_multipart::TypedMultipart::from_request(req, state)
+                .await?
+                .0,
+        ))
     }
 }
 
-impl<T: JsonSchema> OperationInput for Multipart<T> {
+impl<T: JsonSchema> OperationInput for TypedMultipart<T> {
     fn operation_input(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
@@ -57,5 +57,12 @@ impl<T: JsonSchema> OperationInput for Multipart<T> {
                 extensions: IndexMap::default(),
             },
         );
+    }
+
+    fn inferred_early_responses(
+        ctx: &mut aide::generate::GenContext,
+        operation: &mut aide::openapi::Operation,
+    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+        axum::extract::Multipart::inferred_early_responses(ctx, operation)
     }
 }
