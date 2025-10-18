@@ -1,20 +1,27 @@
 use {
-    crate::api_error::ApiError, aide::OperationInput, axum::extract::FromRequest,
-    schemars::JsonSchema, serde::de::DeserializeOwned, validator::Validate,
+    crate::api_error::ApiError,
+    aide::OperationInput,
+    axum::extract::{FromRequest, FromRequestParts},
+    schemars::JsonSchema,
+    serde::de::DeserializeOwned,
+    validator::Validate,
 };
 
 pub struct Query<T>(pub T);
 
-impl<S, T> FromRequest<S> for Query<T>
+impl<S, T> FromRequestParts<S> for Query<T>
 where
     T: DeserializeOwned + Validate,
     S: Send + Sync,
 {
     type Rejection = ApiError;
 
-    async fn from_request(req: axum::extract::Request, state: &S) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        state: &S,
+    ) -> Result<Self, Self::Rejection> {
         let axum::extract::Query(data) =
-            axum::extract::Query::<T>::from_request(req, state).await?;
+            axum::extract::Query::<T>::from_request_parts(parts, state).await?;
         data.validate()?;
         Ok(Query(data))
     }
