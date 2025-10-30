@@ -8,7 +8,7 @@ use {
         extract::FromRequestParts,
         http::{self, StatusCode},
     },
-    chrono::{DateTime, Days, Utc, serde::ts_seconds},
+    chrono::{DateTime, Duration, Utc, serde::ts_seconds},
     derive_more::{Deref, DerefMut},
     jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, decode, encode},
     schemars::JsonSchema,
@@ -93,16 +93,10 @@ impl<S: Sync> FromRequestParts<S> for Jwt {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
-pub struct Token {
-    access_token: String,
-    token_type: String,
-}
-
 impl Jwt {
-    pub fn encode<T: Serialize>(&self, data: T) -> Result<Token, ApiError> {
+    pub fn encode<T: Serialize>(&self, data: T, expiration: Duration) -> Result<String, ApiError> {
         let iat = Utc::now();
-        let exp = iat.checked_add_days(Days::new(1)).unwrap();
+        let exp = iat.checked_add_signed(expiration).unwrap();
         let claims = Claims {
             iat,
             exp,
@@ -114,10 +108,7 @@ impl Jwt {
             detail: Some(e.to_string()),
             extensions: None,
         })?;
-        Ok(Token {
-            access_token: jwt,
-            token_type: "Bearer".to_string(),
-        })
+        Ok(jwt)
     }
 
     pub(crate) fn new(secret: &[u8]) -> Self {

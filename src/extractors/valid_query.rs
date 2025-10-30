@@ -1,10 +1,6 @@
 use {
-    crate::api_error::ApiError,
-    aide::OperationInput,
-    axum::extract::{FromRequest, FromRequestParts},
-    schemars::JsonSchema,
-    serde::de::DeserializeOwned,
-    validator::Validate,
+    crate::api_error::ApiError, aide::OperationInput, axum::extract::FromRequestParts,
+    schemars::JsonSchema, serde::de::DeserializeOwned, validator::Validate,
 };
 
 pub struct Query<T>(pub T);
