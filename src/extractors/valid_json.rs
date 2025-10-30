@@ -1,6 +1,6 @@
 use {
     crate::api_error::ApiError,
-    aide::{OperationInput, OperationOutput},
+    aide::{OperationInput, OperationOutput, openapi::StatusCode},
     axum::{extract::FromRequest, response::IntoResponse},
     derive_more::{AsMut, AsRef, Deref, DerefMut, From},
     diesel::{
@@ -66,7 +66,7 @@ impl<T: JsonSchema> OperationInput for Json<T> {
     fn inferred_early_responses(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
-    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+    ) -> Vec<(Option<StatusCode>, aide::openapi::Response)> {
         <axum::Json<T> as OperationInput>::inferred_early_responses(ctx, operation)
     }
 }
@@ -83,7 +83,7 @@ impl<T: JsonSchema> OperationOutput for Json<T> {
     fn inferred_responses(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
-    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+    ) -> Vec<(Option<StatusCode>, aide::openapi::Response)> {
         <axum::Json<T> as OperationOutput>::inferred_responses(ctx, operation)
     }
 }

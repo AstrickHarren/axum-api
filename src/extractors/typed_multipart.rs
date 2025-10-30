@@ -2,7 +2,7 @@ use {
     crate::prelude::ApiError,
     aide::{
         OperationInput,
-        openapi::{MediaType, RequestBody, SchemaObject},
+        openapi::{MediaType, RequestBody, SchemaObject, StatusCode},
         operation::set_body,
     },
     axum::extract::FromRequest,
@@ -62,7 +62,7 @@ impl<T: JsonSchema> OperationInput for TypedMultipart<T> {
     fn inferred_early_responses(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
-    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+    ) -> Vec<(Option<StatusCode>, aide::openapi::Response)> {
         axum::extract::Multipart::inferred_early_responses(ctx, operation)
     }
 }

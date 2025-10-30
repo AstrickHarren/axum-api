@@ -1,6 +1,10 @@
 use {
-    crate::api_error::ApiError, aide::OperationInput, axum::extract::FromRequestParts,
-    schemars::JsonSchema, serde::de::DeserializeOwned, validator::Validate,
+    crate::api_error::ApiError,
+    aide::{OperationInput, openapi::StatusCode},
+    axum::extract::FromRequestParts,
+    schemars::JsonSchema,
+    serde::de::DeserializeOwned,
+    validator::Validate,
 };
 
 pub struct Query<T>(pub T);
@@ -34,7 +38,7 @@ impl<T: JsonSchema> OperationInput for Query<T> {
     fn inferred_early_responses(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
-    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+    ) -> Vec<(Option<StatusCode>, aide::openapi::Response)> {
         axum::extract::Query::<T>::inferred_early_responses(ctx, operation)
     }
 }

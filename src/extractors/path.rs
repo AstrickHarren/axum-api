@@ -1,6 +1,9 @@
 use {
-    crate::api_error::ApiError, aide::OperationInput, axum::extract::FromRequestParts,
-    schemars::JsonSchema, serde::de::DeserializeOwned,
+    crate::api_error::ApiError,
+    aide::{OperationInput, openapi::StatusCode},
+    axum::extract::FromRequestParts,
+    schemars::JsonSchema,
+    serde::de::DeserializeOwned,
 };
 
 #[derive(Debug)]
@@ -34,7 +37,7 @@ impl<T: JsonSchema> OperationInput for Path<T> {
     fn inferred_early_responses(
         ctx: &mut aide::generate::GenContext,
         operation: &mut aide::openapi::Operation,
-    ) -> Vec<(Option<u16>, aide::openapi::Response)> {
+    ) -> Vec<(Option<StatusCode>, aide::openapi::Response)> {
         axum::extract::Path::<T>::inferred_early_responses(ctx, operation)
     }
 }
