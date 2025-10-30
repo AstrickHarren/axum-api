@@ -49,25 +49,7 @@ impl<S: Sync, T: DeserializeOwned> FromRequestParts<S> for Claims<T> {
                 title: "Missing Token".to_string(),
                 ..Default::default()
             })?;
-
-        let token_data = jwt.decode::<Claims<T>>(token).map_err(|err| {
-            tracing::error!("Error decoding token: {:?}", err);
-            ApiError {
-                status: StatusCode::UNAUTHORIZED,
-                title: "Invalid Token".to_string(),
-                ..Default::default()
-            }
-        })?;
-
-        if Utc::now() > token_data.claims.exp {
-            Err(ApiError {
-                status: StatusCode::UNAUTHORIZED,
-                title: "Token Expired".to_string(),
-                ..Default::default()
-            })?;
-        }
-
-        Ok(token_data.claims)
+        jwt.decode(token)
     }
 }
 
@@ -117,7 +99,26 @@ impl Jwt {
         }
     }
 
-    fn decode<T: DeserializeOwned>(
+    pub fn decode<T: DeserializeOwned>(&self, token: &str) -> Result<Claims<T>, ApiError> {
+        let token_data = self.decode_raw::<Claims<T>>(token).map_err(|err| {
+            tracing::error!("Error decoding token: {:?}", err);
+            ApiError {
+                status: StatusCode::UNAUTHORIZED,
+                title: "Invalid Token".to_string(),
+                ..Default::default()
+            }
+        })?;
+        if Utc::now() > token_data.claims.exp {
+            Err(ApiError {
+                status: StatusCode::UNAUTHORIZED,
+                title: "Token Expired".to_string(),
+                ..Default::default()
+            })?;
+        }
+        Ok(token_data.claims)
+    }
+
+    fn decode_raw<T: DeserializeOwned>(
         &self,
         token: &str,
     ) -> Result<TokenData<T>, jsonwebtoken::errors::Error> {
