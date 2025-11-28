@@ -30,6 +30,7 @@ use {
     PartialEq,
     FromSqlRow,
     AsExpression,
+    JsonSchema,
 )]
 #[serde(transparent)]
 #[diesel(sql_type = sql_types::Jsonb)]
