@@ -4,11 +4,14 @@ pub use {
         diesel_otel::RunQueryDsl,
         extractors::*,
     },
-    aide::axum::{
-        ApiRouter, IntoApiResponse,
-        routing::{
-            ApiMethodRouter, delete_with, get_with, head_with, options_with, patch_with, post_with,
-            put_with, trace_with,
+    aide::{
+        OperationInput, OperationOutput,
+        axum::{
+            ApiRouter, IntoApiResponse,
+            routing::{
+                ApiMethodRouter, delete_with, get_with, head_with, options_with, patch_with,
+                post_with, put_with, trace_with,
+            },
         },
     },
     axum::{body::Bytes, http::StatusCode},
