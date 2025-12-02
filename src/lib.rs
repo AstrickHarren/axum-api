@@ -33,6 +33,10 @@ pub struct Server<A: ToSocketAddrs> {
     /// Jwt token secret
     #[builder(setter(into))]
     jwt_secret: String,
+    /// Dictate `Scalar`'s version, 1.34.2 is a great choice for example.
+    #[builder(setter(into, strip_option))]
+    #[builder(default)]
+    scalar_version: Option<String>,
     migratons: Option<EmbeddedMigrations>,
 }
 
@@ -74,7 +78,7 @@ impl<A: ToSocketAddrs> Server<A> {
                 .layer(OtelInResponseLayer::default())
                 .layer(OtelAxumLayer::default().try_extract_client_ip(true))
                 // Open API
-                .merge(Scalar::new().router())
+                .merge(Scalar::new(self.scalar_version).router())
                 .layer(Extension(Arc::new(api)))
                 // CORS
                 .layer(cors_layer())

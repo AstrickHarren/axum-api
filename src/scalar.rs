@@ -5,12 +5,14 @@ use {
 };
 pub struct Scalar {
     path: String,
+    version: Option<String>,
 }
 
 impl Scalar {
-    pub fn new() -> Self {
+    pub fn new(version: Option<String>) -> Self {
         Self {
             path: "/private/api.json".to_string(),
+            version,
         }
     }
 
@@ -40,7 +42,7 @@ impl Scalar {
                 <div id="app"></div>
 
                 <!-- Load the Script -->
-                <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+                <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference{}"></script>
 
                 <!-- Initialize the Scalar API Reference -->
                 <script>
@@ -56,7 +58,11 @@ impl Scalar {
               </body>
             </html>
             "#,
-            self.path
+            self.version
+                .as_ref()
+                .map(|v| format!("@{}", v))
+                .unwrap_or_default(),
+            self.path,
         );
 
         || async { Html(html) }
