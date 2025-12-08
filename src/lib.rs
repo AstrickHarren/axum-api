@@ -38,11 +38,15 @@ pub struct Server<A: ToSocketAddrs> {
     #[builder(default)]
     scalar_version: Option<String>,
     migratons: Option<EmbeddedMigrations>,
+    #[builder(default = true)]
+    otel_tracing: bool,
 }
 
 impl<A: ToSocketAddrs> Server<A> {
     pub async fn serve(self) -> Result<(), eyre::Error> {
-        let _guard = init_tracing_opentelemetry::TracingConfig::development().init_subscriber()?;
+        let _guard = init_tracing_opentelemetry::TracingConfig::development()
+            .with_otel(self.otel_tracing)
+            .init_subscriber()?;
 
         let database = {
             let database = AsyncPgConnection::establish(&self.pg_url).await?;
