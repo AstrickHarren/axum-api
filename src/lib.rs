@@ -20,6 +20,7 @@ use {
     diesel_migrations::{EmbeddedMigrations, MigrationHarness},
     std::{net::SocketAddr, sync::Arc},
     tokio::net::{TcpListener, ToSocketAddrs},
+    tracing::{Level, level_filters::LevelFilter},
 };
 
 #[derive(Builder)]
@@ -40,12 +41,19 @@ pub struct Server<A: ToSocketAddrs> {
     migratons: Option<EmbeddedMigrations>,
     #[builder(default = true)]
     otel_tracing: bool,
+    #[builder(default)]
+    otel_trace_level: Option<String>,
 }
 
 impl<A: ToSocketAddrs> Server<A> {
     pub async fn serve(self) -> Result<(), eyre::Error> {
         let _guard = init_tracing_opentelemetry::TracingConfig::development()
             .with_otel(self.otel_tracing)
+            .with_otel_trace_level(
+                self.otel_trace_level
+                    .map(|s| s.parse().unwrap())
+                    .unwrap_or(LevelFilter::from_level(Level::INFO)),
+            )
             .init_subscriber()?;
 
         let database = {
