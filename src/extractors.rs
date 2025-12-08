@@ -18,6 +18,7 @@ pub use {
     valid_query::Query,
 };
 
+#[derive(Clone)]
 pub struct Database(Arc<AsyncPgConnection>);
 impl Database {
     pub fn conn(&self) -> &AsyncPgConnection {
