@@ -6,7 +6,6 @@ pub mod extractors;
 pub mod prelude;
 mod scalar;
 
-pub use extractors::jwt_open_api;
 use {
     crate::{diesel_otel::OtelInstrument, extractors::Jwt, scalar::Scalar},
     aide::{
@@ -20,8 +19,8 @@ use {
     diesel_migrations::{EmbeddedMigrations, MigrationHarness},
     std::{net::SocketAddr, sync::Arc},
     tokio::net::{TcpListener, ToSocketAddrs},
-    tracing::{Level, level_filters::LevelFilter},
 };
+pub use {extractors::jwt_open_api, init_tracing_opentelemetry::TracingConfig};
 
 #[derive(Builder)]
 #[builder(pattern = "owned", name = "Config", build_fn(name = "make_server"))]
@@ -39,22 +38,13 @@ pub struct Server<A: ToSocketAddrs> {
     #[builder(default)]
     scalar_version: Option<String>,
     migratons: Option<EmbeddedMigrations>,
-    #[builder(default = true)]
-    otel_tracing: bool,
-    #[builder(default)]
-    otel_trace_level: Option<String>,
+    #[builder(default = TracingConfig::development())]
+    otel_config: TracingConfig,
 }
 
 impl<A: ToSocketAddrs> Server<A> {
     pub async fn serve(self) -> Result<(), eyre::Error> {
-        let _guard = init_tracing_opentelemetry::TracingConfig::development()
-            .with_otel(self.otel_tracing)
-            .with_otel_trace_level(
-                self.otel_trace_level
-                    .map(|s| s.parse().unwrap())
-                    .unwrap_or(LevelFilter::from_level(Level::INFO)),
-            )
-            .init_subscriber()?;
+        let _guard = self.otel_config.init_subscriber()?;
 
         let database = {
             let database = AsyncPgConnection::establish(&self.pg_url).await?;
