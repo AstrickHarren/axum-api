@@ -28,10 +28,10 @@ pub struct Server<A: ToSocketAddrs> {
     app: ApiRouter,
     addr: A,
     /// PostgreSQL connection URL for Diesel
-    #[builder(setter(into))]
-    pg_url: String,
+    #[builder(setter(into, strip_option))]
+    pg_url: Option<String>,
     /// Jwt token secret
-    #[builder(setter(into))]
+    #[builder(setter(into, strip_option))]
     jwt_secret: String,
     /// Dictate `Scalar`'s version, 1.34.2 is a great choice for example.
     #[builder(setter(into, strip_option))]
@@ -46,23 +46,11 @@ impl<A: ToSocketAddrs> Server<A> {
     pub async fn serve(self) -> Result<(), eyre::Error> {
         let _guard = self.otel_config.init_subscriber()?;
 
-        let database = {
-            let database = AsyncPgConnection::establish(&self.pg_url).await?;
-            let mut database = AsyncMigrationHarness::new(database);
-            if let Some(migrations) = self.migratons {
-                database
-                    .run_pending_migrations(migrations)
-                    .expect("Migration failed");
-            }
-            let mut database = database.into_inner();
-            database.set_instrumentation(OtelInstrument);
-            database
-        };
-
         let app = {
             let mut api = OpenApi::default();
             aide::generate::all_error_responses(true);
-            self.app
+            let mut app = self
+                .app
                 .finish_api_with(&mut api, |o| {
                     o.title("Axum Api").security_scheme(
                         "Json Web Token",
@@ -74,8 +62,6 @@ impl<A: ToSocketAddrs> Server<A> {
                         },
                     )
                 })
-                // Diesel
-                .layer(Extension(Arc::new(database)))
                 // OTEL
                 .layer(OtelInResponseLayer::default())
                 .layer(OtelAxumLayer::default().try_extract_client_ip(true))
@@ -85,7 +71,23 @@ impl<A: ToSocketAddrs> Server<A> {
                 // CORS
                 .layer(cors_layer())
                 // Jwt
-                .layer(Extension(Jwt::new(self.jwt_secret.as_bytes())))
+                .layer(Extension(Jwt::new(self.jwt_secret.as_bytes())));
+
+            // Diesel
+            if let Some(pg_url) = &self.pg_url {
+                let database = AsyncPgConnection::establish(pg_url).await?;
+                let mut database = AsyncMigrationHarness::new(database);
+                if let Some(migrations) = self.migratons {
+                    database
+                        .run_pending_migrations(migrations)
+                        .expect("Migration failed");
+                }
+                let mut database = database.into_inner();
+                database.set_instrumentation(OtelInstrument);
+                app = app.layer(Extension(Arc::new(database)))
+            };
+
+            app
         };
         let listener = TcpListener::bind(self.addr).await?;
         axum::serve(
