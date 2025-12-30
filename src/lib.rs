@@ -28,15 +28,15 @@ pub struct Server<A: ToSocketAddrs> {
     app: ApiRouter,
     addr: A,
     /// PostgreSQL connection URL for Diesel
-    #[builder(setter(into, strip_option))]
+    #[builder(default, setter(into, strip_option))]
     pg_url: Option<String>,
     /// Jwt token secret
     #[builder(setter(into, strip_option))]
     jwt_secret: String,
     /// Dictate `Scalar`'s version, 1.34.2 is a great choice for example.
-    #[builder(setter(into, strip_option))]
-    #[builder(default)]
+    #[builder(default, setter(into, strip_option))]
     scalar_version: Option<String>,
+    #[builder(default)]
     migratons: Option<EmbeddedMigrations>,
     #[builder(default = TracingConfig::development())]
     otel_config: TracingConfig,
