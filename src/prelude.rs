@@ -14,7 +14,7 @@ pub use {
             },
         },
     },
-    axum::{body::Bytes, http::StatusCode},
+    axum::{body::Bytes, debug_handler, http::StatusCode},
     axum_typed_multipart,
     diesel::{ExpressionMethods, QueryDsl, prelude::*},
     schemars::JsonSchema,

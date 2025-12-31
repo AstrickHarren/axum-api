@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-axum = "0.8.6"
+axum = { version = "0.8.6", features = ["macros"] }
 aide = { git = "https://github.com/tamasfe/aide.git", features = ["scalar", "axum", "axum-json", "axum-query", "axum-multipart"] }
 axum-tracing-opentelemetry = "0.32.0"
 derive_builder = "0.20.2"
@@ -12,7 +12,6 @@ eyre = "0.6.12"
 init-tracing-opentelemetry = { version = "0.32.0", features = ["otlp", "tracing_subscriber_ext", "metrics"] }
 tokio = { version = "1.47.1", features = ["full"] }
 serde = { version = "1.0.228", features = ["rc", "derive"] }
-schemars = { version = "1.0.4", features = ["chrono04"] }
 diesel = { version = "2.3.2", features = ["postgres", "serde_json", "chrono"] }
 diesel-async = { version = "0.7.3", features = ["postgres", "migrations"] }
 tracing = "0.1.41"
@@ -26,3 +25,4 @@ chrono = { version = "0.4.42", features = ["serde"] }
 diesel_migrations = { version = "2.3.0", features = ["postgres"] }
 axum_typed_multipart = "0.16.4"
 indexmap = "2.11.4"
+schemars = "1.2.0"
