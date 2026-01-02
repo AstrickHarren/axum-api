@@ -5,7 +5,7 @@ pub use {
         extractors::*,
     },
     aide::{
-        OperationInput, OperationOutput,
+        NoApi, OperationInput, OperationOutput, UseApi, WithApi,
         axum::{
             ApiRouter, IntoApiResponse,
             routing::{
